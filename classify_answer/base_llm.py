@@ -21,9 +21,9 @@ from decimal import Decimal, ROUND_HALF_UP
 sql_match = re.compile("""```sql\n([\s\S]*?)\n```""")
 
 
-# apikey = "19e3178c7bf549dcb984be7f54512fe4.ypRrQ5WdDQ1Amgnn"
 
-apikey = "26b5e7f171964c39a3a2a97836d5b196.g4pH0jINb9XoWKW6"
+
+apikey = ""
 if apikey == "":
     raise ValueError("API KEY ERROR")
 # 数据库连接
