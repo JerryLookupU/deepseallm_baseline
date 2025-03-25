@@ -2,3 +2,4 @@
 *.jsonl.gz
 *.jsonl.bz2
 *.json
+*.pyc
