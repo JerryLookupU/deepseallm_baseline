@@ -1615,34 +1615,34 @@ from sqlalchemy import create_engine
 # # # 后续需要自行处理字段 需要增加库表情况 设置 数据库 ship1
 engine = create_engine('mysql+pymysql://root:qweasd@10.5.101.152:3306/ship3')
 #
-# def dtype_col(df):
-#     for i in df.columns:
-#         if "Ajia" in i:
-#             df[i] = df[i].astype(float)
-#         if "PLC" in i:
-#             df[i] = df[i].astype(float)
+def dtype_col(df):
+    for i in df.columns:
+        if "Ajia" in i:
+            df[i] = df[i].astype(float)
+        if "PLC" in i:
+            df[i] = df[i].astype(float)
+
+# one file
+for path in paths:
+    if "Ajia" in path:
+        file_name = os.path.basename(path)
+        file_name = file_name.split(".")[0]
+        name = file_name
+        df = pd.read_csv(path)
+        df = df.sort_values(by="csvTime").reset_index(drop=True)
+        del df["Unnamed: 0"]
+        df = df.replace("error",-1)
+        dtype_col(df)
+        df.to_sql(name,con=engine,if_exists="replace",index=False)
+    else:
+        file_name = os.path.basename(path)
+        file_name = file_name.split(".")[0]
+        name = file_name
+        df = pd.read_csv(path)
+        df = df.sort_values(by="csvTime").reset_index(drop=True)
+        del df["Unnamed: 0"]
+        df = df.replace("error", -1)
+        dtype_col(df)
+        df.to_sql(name,con=engine,if_exists="replace",index=False)
 #
-# # one file
-# for path in paths:
-#     if "Ajia" in path:
-#         file_name = os.path.basename(path)
-#         file_name = file_name.split(".")[0]
-#         name = file_name
-#         df = pd.read_csv(path)
-#         df = df.sort_values(by="csvTime").reset_index(drop=True)
-#         del df["Unnamed: 0"]
-#         df = df.replace("error",-1)
-#         dtype_col(df)
-#         df.to_sql(name,con=engine,if_exists="replace",index=False)
-#     else:
-#         file_name = os.path.basename(path)
-#         file_name = file_name.split(".")[0]
-#         name = file_name
-#         df = pd.read_csv(path)
-#         df = df.sort_values(by="csvTime").reset_index(drop=True)
-#         del df["Unnamed: 0"]
-#         df = df.replace("error", -1)
-#         dtype_col(df)
-#         df.to_sql(name,con=engine,if_exists="replace",index=False)
-# #
 dfx.to_sql("task_action",con=engine,if_exists="replace",index=False)
