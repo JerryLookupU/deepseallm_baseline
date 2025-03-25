@@ -1,0 +1,74 @@
+复赛代码是直接在初赛基础上更改的
+    ---- 由于太忙了 就先整理成一个复赛的版本 需要做如下准备
+
+### 数据标定部分 （如果嫌麻烦，可以使用 load_data 一键导入）
+
+注意需要有mysql数据库ship1
+首先运行 data_process/deepseaetl.py
+需要手动操作：
+
+建立task_action 时间-动作的唯一索引
+```sql
+ALTER TABLE task_action
+ADD UNIQUE INDEX idx_unique_csvtime_action (csvTime(255), actionName(255));
+```
+
+
+使用sql
+A架开机的 actionType 和下一条数据的actionType相同
+```sql
+UPDATE task_action t
+JOIN (
+    SELECT
+        t1.index,
+        LEAD(t2.actionType) OVER (ORDER BY STR_TO_DATE(t1.csvTime, '%Y-%m-%d %H:%i:%s')) AS next_actionType
+    FROM task_action t1
+    WHERE t1.actionName = 'A架开机'
+) tmp ON t.index = tmp.index
+SET t.actionType = tmp.next_actionType
+WHERE t.actionName = 'A架开机';
+```
+
+3 A架关机时继承上一条的 actionType
+```SQL
+UPDATE task_action t
+JOIN (
+    SELECT
+        t1.index,
+        LAG(t2.actionType) OVER (ORDER BY STR_TO_DATE(t1.csvTime, '%Y-%m-%d %H:%i:%s')) AS prev_actionType
+    FROM task_action t1
+    WHERE t1.actionName = 'A架关机'
+) tmp ON t.index = tmp.index
+SET t.actionType = tmp.prev_actionType
+WHERE t.actionName = 'A架关机';
+```
+
+4 折臂吊车开机
+```sql
+UPDATE task_action t
+JOIN (
+    SELECT
+        t1.index,
+        LEAD(t2.actionType) OVER (ORDER BY STR_TO_DATE(t1.csvTime, '%Y-%m-%d %H:%i:%s')) AS next_actionType
+    FROM task_action t1
+    WHERE t1.actionName = '折臂吊车开机'
+) tmp ON t.index = tmp.index
+SET t.actionType = tmp.next_actionType
+WHERE t.actionName = '折臂吊车开机';
+```
+
+5 折臂吊车关机
+```sql
+UPDATE task_action t
+JOIN (
+    SELECT
+        t1.index,
+        LAG(t2.actionType) OVER (ORDER BY STR_TO_DATE(t1.csvTime, '%Y-%m-%d %H:%i:%s')) AS prev_actionType
+    FROM task_action t1
+    WHERE t1.actionName = '折臂吊车关机'
+) tmp ON t.index = tmp.index
+SET t.actionType = tmp.prev_actionType
+WHERE t.actionName = '折臂吊车关机';
+```
+
+复赛： 检查数据是否完备，如果数据完备， 运行 classify_solver.py
